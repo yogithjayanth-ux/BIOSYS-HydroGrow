@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "997859569821",
+    "project_id": "biosense-3bd53",
+    "storage_bucket": "biosense-3bd53.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:997859569821:android:528d185bbb1ae0a1086474",
+        "android_client_info": {
+          "package_name": "com.example.hydrosense_companion_app_549065841"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARGuSr4OvR0tG5AioNqwFtalw_jVcybmQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

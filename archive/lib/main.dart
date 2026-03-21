@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
-        import 'package:hydrosense_companion_app_549065841_f2f/figma_to_flutter.dart' as f2f;
-        
-void main() {
 
-    runApp(
-        f2f.getApp(
-            withInit: (){
+import 'package:firebase_core/firebase_core.dart';
 
-                print('Figma to Flutter initialized!');
-                f2f.subscribeToEvent('pageLoaded', (e) async {
+import 'firebase_options.dart';
+import 'hydrosense_app.dart';
 
-                    String pageName = e.payload;
-                    print('$pageName loaded');
-
-                });
-
-            }
-        )
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
     );
-
+  } catch (_) {
+    // Allows the UI to boot even if Firebase hasn't been configured yet.
+    // Login/ticket actions will show an error until `flutterfire configure` is run.
+  }
+  runApp(const HydroSenseApp());
 }
