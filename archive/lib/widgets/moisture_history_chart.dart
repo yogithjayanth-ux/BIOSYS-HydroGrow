@@ -25,6 +25,57 @@ class MoistureHistoryChart extends StatefulWidget {
   final int? limit;
   final double height;
 
+  static Widget _placeholder(BuildContext context, String text) {
+    return SizedBox(
+      height: 120,
+      child: Center(
+        child: Text(
+          text,
+          style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  static List<MoistureReading> _parseReadings(Object? raw) {
+    if (raw is! Map) return const [];
+    final readings = <MoistureReading>[];
+
+    for (final entry in raw.entries) {
+      final v = entry.value;
+      if (v is! Map) continue;
+
+      final moistureRaw = v['moisture'];
+      final tsRaw = v['ts'];
+
+      final moisture = switch (moistureRaw) {
+        num n => n.toDouble(),
+        String s => double.tryParse(s),
+        _ => null,
+      };
+      if (moisture == null) continue;
+
+      final ts = switch (tsRaw) {
+        num n => n.toInt(),
+        String s => int.tryParse(s),
+        _ => null,
+      };
+      if (ts == null) continue;
+
+      final tsMs = ts < 1000000000000 ? ts * 1000 : ts;
+      readings.add(
+        MoistureReading(
+          time: DateTime.fromMillisecondsSinceEpoch(tsMs),
+          moisture: moisture,
+        ),
+      );
+    }
+
+    readings.sort((a, b) => a.time.compareTo(b.time));
+    return readings;
+  }
+
   @override
   State<MoistureHistoryChart> createState() => _MoistureHistoryChartState();
 }
@@ -84,9 +135,7 @@ class _MoistureHistoryChartState extends State<MoistureHistoryChart> {
                 );
               }
 
-              final points = readings
-                  .map(scaler.point)
-                  .toList(growable: false);
+              final points = readings.map(scaler.point).toList(growable: false);
 
               void setHoverIndex(int? next) {
                 if (!_hoverEnabled) return;
@@ -96,7 +145,7 @@ class _MoistureHistoryChartState extends State<MoistureHistoryChart> {
 
               int? hitTest(Offset localPosition) {
                 const threshold = 10.0;
-                final threshold2 = threshold * threshold;
+                const threshold2 = threshold * threshold;
                 int? bestIndex;
                 var bestDist2 = threshold2;
 
@@ -178,59 +227,6 @@ class _MoistureHistoryChartState extends State<MoistureHistoryChart> {
         );
       },
     );
-  }
-}
-
-extension on MoistureHistoryChart {
-  static Widget _placeholder(BuildContext context, String text) {
-    return SizedBox(
-      height: 120,
-      child: Center(
-        child: Text(
-          text,
-          style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-
-  static List<MoistureReading> _parseReadings(Object? raw) {
-    if (raw is! Map) return const [];
-    final readings = <MoistureReading>[];
-
-    for (final entry in raw.entries) {
-      final v = entry.value;
-      if (v is! Map) continue;
-
-      final moistureRaw = v['moisture'];
-      final tsRaw = v['ts'];
-
-      final moisture = switch (moistureRaw) {
-        num n => n.toDouble(),
-        String s => double.tryParse(s),
-        _ => null,
-      };
-      if (moisture == null) continue;
-
-      final ts = switch (tsRaw) {
-        num n => n.toInt(),
-        String s => int.tryParse(s),
-        _ => null,
-      };
-      if (ts == null) continue;
-
-      final tsMs = ts < 1000000000000 ? ts * 1000 : ts;
-      readings.add(
-        MoistureReading(
-          time: DateTime.fromMillisecondsSinceEpoch(tsMs),
-          moisture: moisture,
-        ),
-      );
-    }
-
-    readings.sort((a, b) => a.time.compareTo(b.time));
-    return readings;
   }
 }
 
@@ -355,17 +351,24 @@ class _MoistureChartPainter extends CustomPainter {
     canvas.drawPath(path, linePaint);
 
     final pointPaint = Paint()..color = lineColor;
+    final highlightStroke = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    final highlightFill = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
     for (var i = 0; i < readings.length; i += 1) {
       final r = readings[i];
       final p = pt(r);
       final isHighlight = highlightIndex != null && highlightIndex == i;
-      canvas.drawCircle(p, isHighlight ? 4.5 : 2.5, pointPaint);
       if (isHighlight) {
-        final ring = Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.fill;
-        canvas.drawCircle(p, 3.0, ring);
-        canvas.drawCircle(p, 4.5, pointPaint);
+        canvas.drawCircle(p, 5.5, pointPaint);
+        canvas.drawCircle(p, 3.0, highlightFill);
+        canvas.drawCircle(p, 5.5, highlightStroke);
+      } else {
+        canvas.drawCircle(p, 2.5, pointPaint);
       }
     }
 
