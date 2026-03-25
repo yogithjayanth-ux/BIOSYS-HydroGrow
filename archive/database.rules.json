@@ -1,0 +1,40 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid",
+        "systems": {
+          "$systemId": {
+            ".validate": "newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length > 0"
+          }
+        }
+      }
+    },
+    "systemOwners": {
+      "$systemId": {
+        ".read": "auth != null && data.val() == auth.uid",
+        ".write": "auth != null && ((!data.exists() && newData.val() == auth.uid) || (data.val() == auth.uid && newData.val() == auth.uid))"
+      }
+    },
+    "devices": {
+      "$systemId": {
+        ".read": "auth != null && (auth.uid == $systemId || root.child('systemOwners/' + $systemId).val() == auth.uid)",
+        ".write": "auth != null && auth.uid == $systemId",
+        "moisture": {
+          ".validate": "newData.isNumber()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "readings": {
+          "$readingId": {
+            ".validate": "newData.hasChildren(['moisture','ts']) && newData.child('moisture').isNumber() && newData.child('ts').isNumber()"
+          }
+        }
+      }
+    }
+  }
+}

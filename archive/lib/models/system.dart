@@ -1,12 +1,9 @@
 class HydroSystem {
   HydroSystem({
+    required this.id,
     required this.name,
-    required this.batchId,
-    this.isFavorite = false,
   });
 
+  final String id;
   final String name;
-  final String batchId;
-  bool isFavorite;
 }
-

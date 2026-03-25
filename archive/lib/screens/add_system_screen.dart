@@ -16,6 +16,7 @@ class AddSystemScreen extends StatefulWidget {
 class _AddSystemScreenState extends State<AddSystemScreen> {
   final TextEditingController _systemId = TextEditingController();
   final TextEditingController _systemName = TextEditingController();
+  bool _busy = false;
 
   @override
   void dispose() {
@@ -50,12 +51,14 @@ class _AddSystemScreenState extends State<AddSystemScreen> {
                     label: 'System ID',
                     controller: _systemId,
                     hintText: 'XXXX-XXXX',
+                    enabled: !_busy,
                   ),
                   const SizedBox(height: 22),
                   LabeledTextField(
                     label: 'System Name',
                     controller: _systemName,
                     hintText: 'Tomatoes',
+                    enabled: !_busy,
                   ),
                   const SizedBox(height: 26),
                   SizedBox(
@@ -68,24 +71,45 @@ class _AddSystemScreenState extends State<AddSystemScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      onPressed: () {
-                        final id = _systemId.text.trim();
-                        final name = _systemName.text.trim();
-                        if (id.isEmpty || name.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please enter both fields'),
-                            ),
-                          );
-                          return;
-                        }
-                        state.addSystem(id: id, name: name);
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          Routes.systems,
-                          (_) => false,
-                        );
-                      },
-                      child: const Text('Add System'),
+                      onPressed: _busy
+                          ? null
+                          : () async {
+                              final id = _systemId.text.trim();
+                              final name = _systemName.text.trim();
+                              if (id.isEmpty || name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter both fields'),
+                                  ),
+                                );
+                                return;
+                              }
+                              setState(() => _busy = true);
+                              try {
+                                await state.addSystem(id: id, name: name);
+                                if (!context.mounted) return;
+                                Navigator.of(context).pushNamedAndRemoveUntil(
+                                  Routes.systems,
+                                  (_) => false,
+                                );
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())),
+                                );
+                              } finally {
+                                if (context.mounted) {
+                                  setState(() => _busy = false);
+                                }
+                              }
+                            },
+                      child: _busy
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Add System'),
                     ),
                   ),
                   const Spacer(),

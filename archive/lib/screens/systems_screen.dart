@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 import '../models/system.dart';
 import '../routes.dart';
@@ -26,69 +27,71 @@ class SystemsScreen extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 460),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Colors.black12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              const Text(
-                                'My Systems',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                              const Spacer(),
-                              Image.asset('images/100_669', height: 22),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Divider(height: 1),
-                          Expanded(
-                            child: ListView.separated(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              itemCount: state.systems.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 2),
-                              itemBuilder: (context, index) {
-                                final system = state.systems[index];
-                                return _SystemRow(
-                                  system: system,
-                                  onTap: () {
-                                    Navigator.of(context).pushNamed(
-                                      Routes.systemStatus,
-                                      arguments: system,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'My Systems',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            const Spacer(),
+                            Image.asset('images/100_669', height: 22),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Divider(height: 1),
+                        Expanded(
+                          child: state.systems.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'No systems yet. Tap + to add one.',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                )
+                              : ListView.separated(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  itemCount: state.systems.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 2),
+                                  itemBuilder: (context, index) {
+                                    final system = state.systems[index];
+                                    return _SystemRow(
+                                      system: system,
+                                      onTap: () {
+                                        Navigator.of(context).pushNamed(
+                                          Routes.systemStatus,
+                                          arguments: system,
+                                        );
+                                      },
                                     );
                                   },
-                                  onToggleFavorite: () =>
-                                      state.toggleFavorite(system),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
                                 ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                              onPressed: () {
-                                Navigator.of(context).pushNamed(Routes.addSystem);
-                              },
-                              child: const Icon(Icons.add),
                             ),
+                            onPressed: () {
+                              Navigator.of(context).pushNamed(Routes.addSystem);
+                            },
+                            child: const Icon(Icons.add),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -105,40 +108,33 @@ class _SystemRow extends StatelessWidget {
   const _SystemRow({
     required this.system,
     required this.onTap,
-    required this.onToggleFavorite,
   });
 
   final HydroSystem system;
   final VoidCallback onTap;
-  final VoidCallback onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
+    final subtitleStyle = TextStyle(color: Colors.grey.shade600, fontSize: 12);
+
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-      leading: IconButton(
-        tooltip: 'Favorite',
-        onPressed: onToggleFavorite,
-        icon: Icon(
-          system.isFavorite ? Icons.star : Icons.star_border,
-          color: system.isFavorite ? Colors.amber.shade700 : Colors.black54,
-        ),
-      ),
       title: Text(
         system.name,
         style: const TextStyle(fontWeight: FontWeight.w500),
       ),
-      subtitle: Text(
-        system.batchId,
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-      ),
-      trailing: const Row(
+      subtitle: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.keyboard_arrow_up, size: 18),
-          SizedBox(width: 2),
-          Text('A', style: TextStyle(fontSize: 12)),
+          Text(
+            'ID: ${system.id}',
+            style: subtitleStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          _MoistureText(systemId: system.id, style: subtitleStyle),
         ],
       ),
       onTap: onTap,
@@ -146,3 +142,36 @@ class _SystemRow extends StatelessWidget {
   }
 }
 
+class _MoistureText extends StatelessWidget {
+  const _MoistureText({required this.systemId, required this.style});
+
+  final String systemId;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    DatabaseReference ref;
+    try {
+      ref = FirebaseDatabase.instance.ref('devices/$systemId/moisture');
+    } catch (_) {
+      return Text('Moisture: —', style: style);
+    }
+
+    return StreamBuilder<DatabaseEvent>(
+      stream: ref.onValue,
+      builder: (context, snapshot) {
+        final raw = snapshot.data?.snapshot.value;
+        final moisture = switch (raw) {
+          num v => v.toDouble(),
+          String v => double.tryParse(v),
+          _ => null,
+        };
+
+        final text = moisture == null
+            ? 'Moisture: —'
+            : 'Moisture: ${moisture.toStringAsFixed(0)}';
+        return Text(text, style: style);
+      },
+    );
+  }
+}

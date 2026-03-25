@@ -65,3 +65,39 @@ In Firebase Console → Remote Config, set `support_ticket_routing_json` to some
 
 If you want tickets to email automatically, install Firebase Extension **Trigger Email**
 and keep its collection set to `mail` (the app writes docs to `mail/` on submit).
+
+## Realtime Database Setup (Systems + Moisture)
+
+This app uses **Firebase Realtime Database** for:
+- Per-user system lists (metadata)
+- Per-system sensor readings (currently `moisture`)
+
+### Data Model
+
+- User systems: `users/{userUid}/systems/{systemId}` → `{ "name": "Lettuce" }`
+- System ownership: `systemOwners/{systemId}` → `{userUid}`
+- Device sensor data: `devices/{systemId}/moisture` → number
+
+`systemId` should be the **ESP32’s Firebase anonymous-auth UID** (printed over Serial).
+
+### Deploy RTDB Rules
+
+From `archive/`:
+
+```sh
+firebase deploy --only database
+```
+
+### Simulate an ESP32 (send moisture)
+
+From `archive/`:
+
+```sh
+node tools/rtdb_device_sim.js --interval 5 --min 20 --max 80
+```
+
+It prints a **System ID** (device UID). Add that ID in the app (Systems → `+`).
+
+Optional env vars:
+- `FIREBASE_API_KEY`
+- `FIREBASE_DATABASE_URL`

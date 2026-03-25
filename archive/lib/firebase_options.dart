@@ -32,15 +32,14 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-  apiKey: "AIzaSyCOkkpK-cggYsfc9xm3orWoCv44JQGDgM0",
-  authDomain: "biosense-3bd53.firebaseapp.com",
-  databaseURL: "https://biosense-3bd53-default-rtdb.firebaseio.com",
-  projectId: "biosense-3bd53",
-  storageBucket: "biosense-3bd53.firebasestorage.app",
-  messagingSenderId: "997859569821",
-  appId: "1:997859569821:web:a62699b6d9c370eb086474",
-  measurementId: "G-EFYY0M7MMW"
-  );
+      apiKey: "AIzaSyCOkkpK-cggYsfc9xm3orWoCv44JQGDgM0",
+      authDomain: "biosense-3bd53.firebaseapp.com",
+      databaseURL: "https://biosense-3bd53-default-rtdb.firebaseio.com",
+      projectId: "biosense-3bd53",
+      storageBucket: "biosense-3bd53.firebasestorage.app",
+      messagingSenderId: "997859569821",
+      appId: "1:997859569821:web:a62699b6d9c370eb086474",
+      measurementId: "G-EFYY0M7MMW");
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyARGuSr4OvR0tG5AioNqwFtalw_jVcybmQ',
@@ -48,6 +47,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '997859569821',
     projectId: 'biosense-3bd53',
     storageBucket: 'biosense-3bd53.firebasestorage.app',
+    databaseURL: 'https://biosense-3bd53-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -57,6 +57,7 @@ class DefaultFirebaseOptions {
     projectId: 'biosense-3bd53',
     storageBucket: 'biosense-3bd53.firebasestorage.app',
     iosBundleId: 'com.example.hydrosenseCompanionApp549065841',
+    databaseURL: 'https://biosense-3bd53-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -66,6 +67,7 @@ class DefaultFirebaseOptions {
     projectId: 'biosense-3bd53',
     storageBucket: 'biosense-3bd53.firebasestorage.app',
     iosBundleId: 'com.example.hydrosenseCompanionApp549065841',
+    databaseURL: 'https://biosense-3bd53-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -76,6 +78,7 @@ class DefaultFirebaseOptions {
     authDomain: 'biosense-3bd53.firebaseapp.com',
     storageBucket: 'biosense-3bd53.firebasestorage.app',
     measurementId: 'G-GXZNFD1D9G',
+    databaseURL: 'https://biosense-3bd53-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
@@ -83,5 +86,6 @@ class DefaultFirebaseOptions {
     appId: 'YOUR_APP_ID',
     messagingSenderId: 'YOUR_SENDER_ID',
     projectId: 'biosense-3bd53',
+    databaseURL: 'https://biosense-3bd53-default-rtdb.firebaseio.com',
   );
 }
