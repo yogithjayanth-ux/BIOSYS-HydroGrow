@@ -1,0 +1,26 @@
+.git
+.vscode
+**/.DS_Store
+
+# Flutter
+archive/.dart_tool
+archive/.flutter-plugins
+archive/.flutter-plugins-dependencies
+archive/.pub-cache
+archive/build
+
+# Android/Gradle
+archive/android/.gradle
+archive/android/app/debug
+archive/android/app/profile
+archive/android/app/release
+
+# iOS/macOS
+archive/ios/Pods
+archive/ios/.symlinks
+archive/ios/Flutter/.last_build_id
+archive/macos/Pods
+archive/macos/.symlinks
+
+# Output artifacts
+dist

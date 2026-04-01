@@ -24,4 +24,3 @@ class CircleIconButton extends StatelessWidget {
     );
   }
 }
-

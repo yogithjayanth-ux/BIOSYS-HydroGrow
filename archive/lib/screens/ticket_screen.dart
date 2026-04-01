@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../routes.dart';
+import '../services/support_ticket_email_relay.dart';
 import '../services/support_ticket_service.dart';
 import '../widgets/circle_icon_button.dart';
 import '../widgets/hydro_app_bar.dart';
@@ -15,6 +17,8 @@ class TicketScreen extends StatefulWidget {
 }
 
 class _TicketScreenState extends State<TicketScreen> {
+  static const String _supportEmail = 'lunseargen@gmail.com';
+
   final TextEditingController _email = TextEditingController();
   final TextEditingController _feedback = TextEditingController();
   bool _submitting = false;
@@ -53,13 +57,38 @@ class _TicketScreenState extends State<TicketScreen> {
 
     setState(() => _submitting = true);
     try {
+      final user = FirebaseAuth.instance.currentUser;
       final ticketId = await SupportTicketService().submit(
         contactEmail: email,
         message: message,
       );
       if (!mounted) return;
+
+      final relayed = await sendSupportTicketEmailViaRelay(
+        ticketId: ticketId,
+        contactEmail: email,
+        message: message,
+        userEmail: user?.email,
+        uid: user?.uid,
+      );
+
+      bool emailOpened = false;
+      if (!relayed) {
+        emailOpened = await _openSupportEmailComposer(
+          ticketId: ticketId,
+          contactEmail: email,
+          message: message,
+          userEmail: user?.email,
+          uid: user?.uid,
+        );
+      }
+
+      if (!mounted) return;
+      final status = relayed
+          ? 'emailed'
+          : (emailOpened ? 'email app opened' : 'couldn’t open email app');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Submitted. Ticket: $ticketId')),
+        SnackBar(content: Text('Submitted. Ticket: $ticketId ($status)')),
       );
       _feedback.clear();
     } catch (e) {
@@ -69,6 +98,39 @@ class _TicketScreenState extends State<TicketScreen> {
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  Future<bool> _openSupportEmailComposer({
+    required String ticketId,
+    required String contactEmail,
+    required String message,
+    required String? userEmail,
+    required String? uid,
+  }) async {
+    final subject = 'HydroSense Support Ticket $ticketId';
+    final body = [
+      'Ticket: $ticketId',
+      'Contact: $contactEmail',
+      if (userEmail != null && userEmail.trim().isNotEmpty) 'User: ${userEmail.trim()}',
+      if (uid != null && uid.trim().isNotEmpty) 'UID: ${uid.trim()}',
+      '',
+      message,
+    ].join('\n');
+
+    final uri = Uri(
+      scheme: 'mailto',
+      path: _supportEmail,
+      queryParameters: {
+        'subject': subject,
+        'body': body,
+      },
+    );
+
+    try {
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      return false;
     }
   }
 

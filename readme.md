@@ -10,13 +10,46 @@ flutter pub get
 flutter run -d chrome --no-track-widget-creation
 ```
 
-## Test / Analyze
+## Docker
+
+Requires Docker Desktop (or another Docker daemon) running.
+
+### Run (Web, hot reload)
 
 ```sh
-cd archive
-flutter test
-flutter analyze
+docker compose up flutter-web
 ```
+
+Then open `http://localhost:8080`.
+
+### Export APK
+
+```sh
+docker compose run --rm flutter-apk
+```
+
+APK output: `dist/HydroGrow.apk` (debug-signed; not Play Store-ready).
+
+## Export APK (Local)
+
+```sh
+# macOS helper (installs Android SDK cmdline tools + required packages)
+bash scripts/setup_android_sdk_macos.sh
+
+# build + copy to dist/
+bash scripts/export_apk.sh --local
+```
+
+## Demo
+Login via email and password: 
+```
+email: 
+admin@admin.com
+pass:
+adminadmin
+
+```
+
 
 ## Notes
 
@@ -66,11 +99,10 @@ If you want tickets to email automatically, install Firebase Extension **Trigger
 and keep its collection set to `mail` (the app writes docs to `mail/` on submit).
 
 
+### 5) Send sample data to Firebase
 
+From `archive/`:
 
-
-
-### Mar21Notes
-    fix mysystems 
-        get rid of werid star and box
-        
+```bash
+node tools/rtdb_device_sim.js --interval 5 --min 20 --max 80
+```

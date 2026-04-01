@@ -8,12 +8,9 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // WARNING: letting clients write to `mail` can be abused for spamming.
-    // Prefer a server-side function/extension that sends mail based on a
-    // trusted ticket record instead.
+    // Ticket emails are sent server-side (Cloud Function).
     match /mail/{mailId} {
-      allow create: if request.auth != null;
-      allow read, update, delete: if false;
+      allow read, write: if false;
     }
 
     // Deny everything else by default.
@@ -22,4 +19,3 @@ service cloud.firestore {
     }
   }
 }
-
