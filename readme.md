@@ -14,6 +14,12 @@ flutter run -d chrome --no-track-widget-creation
 
 Requires Docker Desktop (or another Docker daemon) running.
 
+### Setup (auto)
+
+```sh
+bash scripts/docker_setup.sh
+```
+
 ### Run (Web, hot reload)
 
 ```sh
