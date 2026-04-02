@@ -1,5 +1,5 @@
 # Output artifacts
-dist/
+# dist/
 
 # Local Android SDK (if you choose to install it here)
 .android-sdk/
