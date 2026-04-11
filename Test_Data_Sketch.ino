@@ -56,17 +56,35 @@ void loop() {
       return;
     }
 
-    const int moisture = 42; // TODO: replace with a real sensor reading
     String uidPath = "/devices/" + deviceUid;
 
-    if (Firebase.RTDB.setInt(&fbdo, uidPath + "/moisture", moisture)) {
-      Serial.println("Data written successfully!");
+    // TODO: Set `moisture` from a real sensor reading (left intentionally open; do not randomize).
+    const int moisture = 42;
+
+    // Append a history point:
+    //   /devices/<deviceUid>/readings/<pushId> { moisture, ts }
+    // This matches `archive/tools/rtdb_device_sim.js` and the Flutter app's expected shape.
+    FirebaseJson reading;
+    reading.set("moisture", moisture);
+    reading.set("ts/.sv", "timestamp");
+    if (Firebase.RTDB.pushJSON(&fbdo, uidPath + "/readings", &reading)) {
+      Serial.print("Pushed reading: ");
+      Serial.println(fbdo.pushName());
     } else {
+      Serial.print("Failed to push reading: ");
       Serial.println(fbdo.errorReason());
     }
 
-    // Optional: write server timestamp so the app can show "Last update".
-    Firebase.RTDB.setTimestamp(&fbdo, uidPath + "/updatedAt");
+    // Update the current value (same shape as the JS simulator's PATCH call).
+    FirebaseJson devicePatch;
+    devicePatch.set("moisture", moisture);
+    devicePatch.set("updatedAt/.sv", "timestamp");
+    if (Firebase.RTDB.updateNode(&fbdo, uidPath, &devicePatch)) {
+      Serial.println("Device state updated!");
+    } else {
+      Serial.print("Failed to update device state: ");
+      Serial.println(fbdo.errorReason());
+    }
   } else {
     Serial.println("Firebase not ready...");
   }
