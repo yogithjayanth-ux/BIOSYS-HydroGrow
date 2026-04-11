@@ -24,8 +24,8 @@
 static const char* WIFI_SSID = "YOUR_WIFI_SSID";
 static const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 
-static const char* FIREBASE_API_KEY = "YOUR_FIREBASE_WEB_API_KEY";
-static const char* FIREBASE_DATABASE_URL = "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com";
+static const char* FIREBASE_API_KEY = "AIzaSyCOkkpK-cggYsfc9xm3orWoCv44JQGDgM0";
+static const char* FIREBASE_DATABASE_URL = "https://biosense-3bd53-default-rtdb.firebaseio.com";
 
 static const uint32_t UPLOAD_INTERVAL_MS = 5000;
 
