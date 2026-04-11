@@ -17,6 +17,7 @@ class SystemStatusScreen extends StatefulWidget {
 
 class _SystemStatusScreenState extends State<SystemStatusScreen> {
   int? _historyLimit = 10;
+  static const double dryThreshold = 30;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +62,10 @@ class _SystemStatusScreenState extends State<SystemStatusScreen> {
                 child: ListView(
                   padding: const EdgeInsets.only(top: 18),
                   children: [
-                    _MoistureNow(deviceRef: deviceRef),
+                    _MoistureStatusNow(
+                      deviceRef: deviceRef,
+                      dryThreshold: dryThreshold,
+                    ),
                     const SizedBox(height: 18),
                     Row(
                       children: [
@@ -104,6 +108,11 @@ class _SystemStatusScreenState extends State<SystemStatusScreen> {
                       systemId: system.id,
                       limit: _historyLimit,
                     ),
+                    const SizedBox(height: 18),
+                    _MoistureLevelNow(
+                      deviceRef: deviceRef,
+                      dryThreshold: dryThreshold,
+                    ),
                   ],
                 ),
               ),
@@ -145,10 +154,14 @@ class _SystemStatusScreenState extends State<SystemStatusScreen> {
   }
 }
 
-class _MoistureNow extends StatelessWidget {
-  const _MoistureNow({required this.deviceRef});
+class _MoistureStatusNow extends StatelessWidget {
+  const _MoistureStatusNow({
+    required this.deviceRef,
+    required this.dryThreshold,
+  });
 
   final DatabaseReference? deviceRef;
+  final double dryThreshold;
 
   @override
   Widget build(BuildContext context) {
@@ -182,6 +195,12 @@ class _MoistureNow extends StatelessWidget {
             ? null
             : DateTime.fromMillisecondsSinceEpoch(updatedAtMs);
 
+        final status = moisture == null
+            ? '—'
+            : moisture < dryThreshold
+                ? 'dry'
+                : 'wet';
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -191,8 +210,22 @@ class _MoistureNow extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              moisture == null ? '—' : moisture.toStringAsFixed(0),
+              status,
               style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Text(
+                  'Dry <',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  dryThreshold.toStringAsFixed(0),
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             Text(
@@ -201,6 +234,62 @@ class _MoistureNow extends StatelessWidget {
                   : 'Last update: ${_SystemStatusScreenState._formatDateTime(updatedAt)}',
               style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
             ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MoistureLevelNow extends StatelessWidget {
+  const _MoistureLevelNow({
+    required this.deviceRef,
+    required this.dryThreshold,
+  });
+
+  final DatabaseReference? deviceRef;
+  final double dryThreshold;
+
+  @override
+  Widget build(BuildContext context) {
+    if (deviceRef == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<DatabaseEvent>(
+      stream: deviceRef!.onValue,
+      builder: (context, snapshot) {
+        final raw = snapshot.data?.snapshot.value;
+        final map = raw is Map ? raw : const <Object?, Object?>{};
+
+        final rawMoisture = map['moisture'];
+        final moisture = switch (rawMoisture) {
+          num v => v.toDouble(),
+          String v => double.tryParse(v),
+          _ => null,
+        };
+
+        final isDry = moisture != null && moisture < dryThreshold;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Moisture Level',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              moisture == null ? '—' : moisture.toStringAsFixed(0),
+              style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w800),
+            ),
+            if (isDry) ...[
+              const SizedBox(height: 6),
+              Text(
+                'pumping...',
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+              ),
+            ],
           ],
         );
       },
