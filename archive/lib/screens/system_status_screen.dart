@@ -18,6 +18,20 @@ class SystemStatusScreen extends StatefulWidget {
 class _SystemStatusScreenState extends State<SystemStatusScreen> {
   int? _historyLimit = 10;
   static const double dryThreshold = 30;
+  static const double rawDryValue = 4800;
+  static const double rawWetValue = 3300;
+
+  static double? _rawMoistureToPercent(Object? rawMoisture) {
+    final rawValue = switch (rawMoisture) {
+      num v => v.toDouble(),
+      String v => double.tryParse(v),
+      _ => null,
+    };
+    if (rawValue == null) return null;
+
+    final clamped = rawValue.clamp(rawWetValue, rawDryValue);
+    return ((rawDryValue - clamped) / (rawDryValue - rawWetValue)) * 100;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,11 +193,7 @@ class _MoistureStatusNow extends StatelessWidget {
         final map = raw is Map ? raw : const <Object?, Object?>{};
 
         final rawMoisture = map['moisture'];
-        final moisture = switch (rawMoisture) {
-          num v => v.toDouble(),
-          String v => double.tryParse(v),
-          _ => null,
-        };
+        final moisture = _SystemStatusScreenState._rawMoistureToPercent(rawMoisture);
 
         final rawUpdatedAt = map['updatedAt'];
         final updatedAtMs = switch (rawUpdatedAt) {
@@ -214,6 +224,18 @@ class _MoistureStatusNow extends StatelessWidget {
               style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
+            Text(
+              moisture == null
+                  ? 'Raw: —'
+                  : 'Raw: ${rawMoisture ?? '—'}  |  ${moisture.toStringAsFixed(0)}%',
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'High raw values are dry; low raw values are wet.',
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+            ),
+            const SizedBox(height: 10),
             Row(
               children: [
                 const Text(
@@ -222,7 +244,7 @@ class _MoistureStatusNow extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  dryThreshold.toStringAsFixed(0),
+                  '${dryThreshold.toStringAsFixed(0)}%',
                   style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
                 ),
               ],
@@ -263,11 +285,7 @@ class _MoistureLevelNow extends StatelessWidget {
         final map = raw is Map ? raw : const <Object?, Object?>{};
 
         final rawMoisture = map['moisture'];
-        final moisture = switch (rawMoisture) {
-          num v => v.toDouble(),
-          String v => double.tryParse(v),
-          _ => null,
-        };
+        final moisture = _SystemStatusScreenState._rawMoistureToPercent(rawMoisture);
 
         final isDry = moisture != null && moisture < dryThreshold;
 
@@ -280,7 +298,7 @@ class _MoistureLevelNow extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              moisture == null ? '—' : moisture.toStringAsFixed(0),
+              moisture == null ? '—' : '${moisture.toStringAsFixed(0)}%',
               style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w800),
             ),
             if (isDry) ...[
