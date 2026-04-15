@@ -18,8 +18,8 @@ class SystemStatusScreen extends StatefulWidget {
 class _SystemStatusScreenState extends State<SystemStatusScreen> {
   int? _historyLimit = 10;
   static const double dryThreshold = 30;
-  static const double rawDryValue = 4800;
-  static const double rawWetValue = 3300;
+  static const double rawDryValue = 4095;
+  static const double rawWetValue = 4000;
 
   static double? _rawMoistureToPercent(Object? rawMoisture) {
     final rawValue = switch (rawMoisture) {
